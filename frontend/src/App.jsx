@@ -5,10 +5,12 @@ import SignUp from "./pages/auth/SignUp"
 import Expense from "./pages/dashboard/Expense"
 import Income from "./pages/dashboard/Income"
 import Home from "./pages/dashboard/Home"
+import userProvider from './context/UserContext'
 
 const App = () => {
   return (
-    <div>
+    <UserProvider>
+      <div>
       <Router>
         <Routes>
           <Route path="/" element={<Root/>}/>
@@ -20,6 +22,7 @@ const App = () => {
         </Routes>
       </Router>
     </div>
+    </UserProvider>
   )
 }
 
@@ -28,9 +31,9 @@ export default App
 const Root = () => {
   const isAuthenticated = !!localStorage.getItem("token");
 
-  // return isAuthenticated ? (
-  //   <Navigate to="/dashboard" />
-  // ) : (
-  //   <Navigate to="/login" />
-  // );
+  return isAuthenticated ? (
+    <Navigate to="/dashboard" />
+  ) : (
+    <Navigate to="/login" />
+  );
 };
