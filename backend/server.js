@@ -10,24 +10,43 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 
 const app = express();
 
+// CORS Configuration
 app.use(
     cors({
         origin: "http://localhost:5173",
         methods: ["GET", "POST", "PUT", "DELETE"],
-        allowedHeaders: ["content-type","Authorization"]
+        allowedHeaders: ["Content-Type", "Authorization"] // Fixed case sensitivity
     })
 );
 
-app.use(express.json())
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // For form data
 
-connectDB()
+// Database Connection
+connectDB();
 
+// Ensure uploads directory exists
+const fs = require('fs');
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/income", incomeRoutes);
 app.use("/api/v1/expense", expenseRoutes);
-app.use("/api/v1/expense", dashboardRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes); // Fixed route conflict
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Static Files
+app.use('/uploads', express.static(uploadsDir));
 
-const PORT =process.env.PORT || 5000
-app.listen(PORT, () => console.log(`the sever is running ath the port ${PORT}`));
+// Error Handling Middleware (add at the end)
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

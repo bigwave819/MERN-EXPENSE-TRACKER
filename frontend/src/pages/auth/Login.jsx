@@ -1,22 +1,29 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import AuthLayout from "../../components/layouts/AuthLayout";
 import { useNavigate, Link } from "react-router-dom";
 import Input from "../../components/Inputs/Input";
 import { validateEmail } from "../../utils/helper";
-import axiosInstance from "../../utils/axiosInstance"; // ✅ Corrected spelling
+import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
-import userContext from "../../context/UserContext"
+import { userContext } from "../../context/UserContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { user, updateUser } = useContext(userContext); // Get the context
 
-  const {updateUser} = useContext(userContext) 
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
-  // Handle login logic
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -28,7 +35,9 @@ const Login = () => {
       setError("Please enter the password");
       return;
     }
-    setError(null); // ✅ Ensures correct state reset
+
+    setError(null);
+    setLoading(true);
 
     try {
       const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
@@ -36,19 +45,32 @@ const Login = () => {
         password,
       });
 
-      const { token, user } = response.data;
+      const { token, user: userData } = response.data;
 
       if (token) {
         localStorage.setItem("token", token);
-        updateUser(user)
+        updateUser(userData); 
+        // Ensure updateUser exists before calling
+        if (updateUser) {
+          updateUser(userData);
+          console.log('User updated in context:', userData);
+        } else {
+          console.error('updateUser function missing in context');
+        }
+        setEmail("");
+        setPassword("");
+        setError(null);
         navigate("/dashboard");
+      } else {
+        setError("Invalid authentication response");
       }
     } catch (error) {
-      if (error.response && error.response.data.message) {
-        setError(error.response.data.message);
-      } else {
-        setError("Something went wrong, try again");
-      }
+      console.error("Login error:", error);
+      setError(
+        error.response?.data?.message || "Something went wrong. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,14 +83,14 @@ const Login = () => {
         </p>
         <form onSubmit={handleSubmit}>
           <Input
-            value={email} // ✅ Correct prop name
+            value={email}
             onChange={({ target }) => setEmail(target.value)}
             label="Email Address"
             placeholder="john@gmail.com"
             type="email"
           />
           <Input
-            value={password} // ✅ Correct prop name
+            value={password}
             onChange={({ target }) => setPassword(target.value)}
             label="Password"
             placeholder="Min 8 characters"
@@ -77,13 +99,17 @@ const Login = () => {
 
           {error && <p className="text-red-500 text-xs pb-2.5">{error}</p>}
 
-          <button type="submit" className="btn-primary">
-            LOGIN
+          <button 
+            type="submit" 
+            className="btn-primary" 
+            disabled={loading}
+          >
+            {loading ? 'Logging in...' : 'LOGIN'}
           </button>
           <p className="text-[13px] text-slate-800 mt-3">
             Don't have an account?{" "}
             <Link className="font-medium text-primary underline" to="/signUp">
-              SignUp
+              Sign Up
             </Link>
           </p>
         </form>
