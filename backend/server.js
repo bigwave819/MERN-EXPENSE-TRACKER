@@ -37,7 +37,7 @@ if (!fs.existsSync(uploadsDir)) {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/income", incomeRoutes);
 app.use("/api/v1/expense", expenseRoutes);
-app.use("/api/v1/dashboard", dashboardRoutes); // Fixed route conflict
+app.use("/api/v1/", dashboardRoutes); // Fixed route conflict
 
 // Static Files
 app.use('/uploads', express.static(uploadsDir));

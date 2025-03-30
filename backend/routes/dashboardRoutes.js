@@ -1,11 +1,10 @@
-const express = require("express")
+const express = require("express");
+const { getDashboardData } = require('../controllers/dashboardController');
+const { protected } = require('../middleware/authMiddleware');
 
-const { getDashboardData } =  require('../controllers/dashboardController');
+const router = express.Router();
 
- const { protected } = require('../middleware/authMiddleware');
-
- const router = express.Router();
-
-router.post('/', protected, getDashboardData);
+// Ensure correct route
+router.get('/dashboard', protected, getDashboardData); // ✅ Changed '/' to '/dashboard'
 
 module.exports = router;
