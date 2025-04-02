@@ -8,7 +8,7 @@ export const API_PATHS = {
         UPLOAD_IMAGE: '/api/v1/auth/upload-image' // Consolidated under AUTH
     },
     DASHBOARD: {
-        GET_DATA: '/api/v1/dashboard'
+        ADD_DATA: '/api/v1/dashboard/add'
     },
     INCOME: {
         ADD_INCOME: '/api/v1/income/add',

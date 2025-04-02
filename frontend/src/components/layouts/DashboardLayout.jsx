@@ -5,13 +5,6 @@ import SlideMenu from './SlideMenu';
 
 const DashboardLayout = ({ children, activeMenu }) => {
   const { user } = useContext(userContext);
-  
-  // Add debug logging
-  console.log('Current user in DashboardLayout:', user);
-
-  useEffect(() => {
-    console.log('User context value:', { user });
-  }, [user]);
 
   return (
     <div className=''>

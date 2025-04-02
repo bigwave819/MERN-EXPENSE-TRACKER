@@ -2,41 +2,53 @@ const xlsx = require('xlsx')
 const Income = require('../models/incomeModel')
 
 exports.addIncome = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const { icon, source, amount, date } = req.body;
+        if (!source || !amount || !date) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
 
-    const userId = req.user.id
- 
-   try {
-    const { icon, source, amount, date } = req.body;
+        const newIncome = new Income({
+            user_id: userId,  // ✅ Matches schema
+            icon,
+            source,
+            amount,
+            date: new Date(date)  // ✅ Correctly parses date
+        });
 
-    if (!source || !amount || !date) {
-        return res.status(400).json({ message: "all fields are required" })
+        await newIncome.save();
+        res.status(200).json(newIncome);
+    } catch (error) {
+        res.status(500).json({ 
+            message: "Failed to add income", 
+            error: error.message 
+        });
     }
-
-    const newIncome = ({
-        userId,
-        icon,
-        source,
-        amount,
-        date: new Date(date)
-    });
-
-    await newIncome.save()
-    res.status(200).json(newIncome)
-   } catch (error) {
-    res.status(500).json({ message: "error registering the user", error: error.message });
-   }
 };
 
 exports.getAllIncome = async (req, res) => {
-    const userId = req.user.id
+    const userId = req.user.id;
+
+    // Check if userId is available
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is missing or invalid' });
+    }
 
     try {
-        const income = await Income.find({userId}).sort({ date: -1 });
-        res.json(income)
+        const income = await Income.find({ user_id: userId }).sort({ date: -1 });
+        // If no income records found
+        if (!income || income.length === 0) {
+            return res.status(404).json({ message: "No income records found for the user" });
+        }
+
+        res.json(income); // Return the income data
     } catch (error) {
-        res.status(500).json({ message: "error registering the user", error: error.message });
+        console.error('Error fetching income data:', error); // Log the error for debugging
+        res.status(500).json({ message: "Error fetching income data", error: error.message });
     }
 };
+
 
 exports.deleteIncome = async (req, res) => {
     try {
@@ -55,7 +67,7 @@ exports.downloadIncomeExcel = async (req, res) => {
 
         const data = income.map((item) => ({
             source: item.source,
-            source: item.amount,
+            amount: item.amount,
             date: item.date
         }));
 

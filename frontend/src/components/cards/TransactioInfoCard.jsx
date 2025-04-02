@@ -20,11 +20,7 @@ const TransactioInfoCard = ({
     <div className='relative flex items-center gap-4 mt-2 p-3 rounded-lg hover:bg-gray-100/60'>
         <div className='w-12 h-12 flex items-center justify-center text-xl text-gray-800 rounded-full'>
             { icon ? (
-                <img 
-                src={icon} 
-                alt={title} 
-                className='w-6 h-6'
-                />
+                <span className="text-xl w-6 h-6">{icon}</span>
             ) : (
                 <LuUtensils/>
             )}

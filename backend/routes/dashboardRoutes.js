@@ -5,6 +5,6 @@ const { protected } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Ensure correct route
-router.get('/dashboard', protected, getDashboardData); // ✅ Changed '/' to '/dashboard'
+router.get('/dashboard/add', protected, getDashboardData);
 
 module.exports = router;
