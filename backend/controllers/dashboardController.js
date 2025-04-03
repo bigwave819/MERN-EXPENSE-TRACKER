@@ -29,11 +29,35 @@ exports.getDashboardData = async (req, res) => {
             date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
         }).sort({ date: -1 });
 
+        //expense last 30 days
+        const expenseLast30Days = last30DaysExpenseTransactions.reduce(
+            (sum, transaction) => sum + transaction.amount,
+            0
+        )
+
+        const lastTransactions = [
+            ...(await Income.find({ user_id: userObjectId }).sort({ date: -1 }).limit(5)).map(
+                (txn) => ({
+                    ...txn.toObject(),
+                    type:"income"
+                })
+            ),
+            ...(await Expense.find({ user_id: userObjectId }).sort({ date: -1 }).limit(5)).map(
+                (txn) => ({
+                    ...txn.toObject(),
+                    type:"expense"
+                })
+            )
+        ].sort((a, b) => new Date(b.date) - new Date(a.date));
         // Final response (aligned with frontend)
         res.json({
             totalBalance: (totalIncome[0]?.total || 0) - (totalExpense[0]?.total || 0),
             totalIncome: totalIncome[0]?.total || 0,
             totalExpense: totalExpense[0]?.total || 0,
+            Last30DaysExpense: {
+                total: expenseLast30Days,
+                transactions: last30DaysExpenseTransactions
+            },
             Last60DaysIncome: {  // ✅ Capitalized
                 total: last60DaysIncomeTransactions.reduce((sum, txn) => sum + txn.amount, 0),
                 transactions: last60DaysIncomeTransactions  // ✅ Plural

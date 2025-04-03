@@ -1,5 +1,5 @@
-const xlsx = require('xlsx')
-const Income = require('../models/incomeModel')
+const xlsx = require('xlsx');
+const Income = require('../models/incomeModel');
 
 exports.addIncome = async (req, res) => {
     const userId = req.user.id;
@@ -50,20 +50,25 @@ exports.getAllIncome = async (req, res) => {
 };
 
 
+// DELETE FUNCTION
 exports.deleteIncome = async (req, res) => {
     try {
-        await Income.findByIdAndDelete(req.params.id)
-        res.json({ message: "Income deleted successfully" })
+        const income = await Income.findByIdAndDelete(req.params.id);
+        if (!income) {
+            return res.status(404).json({ message: "Income not found" });
+        }
+        res.json({ message: "Income deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: "error registering the user", error: error.message });
+        res.status(500).json({ message: "Error deleting income", error: error.message });
     }
 };
 
+
 exports.downloadIncomeExcel = async (req, res) => {
-    const UserId = req.user.id;
+    const userId = req.user.id;  // Fixed: renamed UserId to userId
 
     try {
-        const Income = await Income.find({userId}).sort({ date: -1 });
+        const income = await Income.find({ user_id: userId }).sort({ date: -1 });  // Fixed: renamed Income to income
 
         const data = income.map((item) => ({
             source: item.source,
@@ -75,8 +80,8 @@ exports.downloadIncomeExcel = async (req, res) => {
         const ws = xlsx.utils.json_to_sheet(data);
         xlsx.utils.book_append_sheet(wb, ws, 'Income');
         xlsx.writeFile(wb, 'Income_Details.xlsx');
-        res.download('Income_Details.xlsx')
+        res.download('Income_Details.xlsx');
     } catch (error) {
-        res.status(500).json({ message: "error registering the user", error: error.message });
+        res.status(500).json({ message: "Error downloading income data", error: error.message });  // Fixed: updated error message
     }
 };

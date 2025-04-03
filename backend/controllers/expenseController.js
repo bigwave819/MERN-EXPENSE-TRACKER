@@ -2,36 +2,36 @@ const xlsx = require('xlsx')
 const Expense = require('../models/expenseModel')
 
 exports.addExpense = async (req, res) => {
+    const userId = req.user.id;
 
-    const userId = req.user.id
- 
-   try {
-    const { icon, source, amount, date } = req.body;
+    try {
+        const { icon, category, amount, date } = req.body;
 
-    if (!source || !amount || !date) {
-        return res.status(400).json({ message: "all fields are required" })
+        if (!category || !amount || !date) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        const newExpense = new Expense({
+            user_id: userId,
+            icon,
+            category,
+            amount,
+            date: new Date(date)
+        });
+
+        await newExpense.save();
+        res.status(200).json(newExpense);
+    } catch (error) {
+        res.status(500).json({ message: "Error adding the expense", error: error.message });
     }
-
-    const newExpense = ({
-        userId,
-        icon,
-        source,
-        amount,
-        date: new Date(date)
-    });
-
-    await newExpense.save()
-    res.status(200).json(newExpense)
-   } catch (error) {
-    res.status(500).json({ message: "error registering the user", error: error.message });
-   }
 };
+
 
 exports.getAllExpense = async (req, res) => {
     const userId = req.user.id
 
     try {
-        const expense = await Expense.find({userId}).sort({ date: -1 });
+        const expense = await Expense.find({ user_id: userId }).sort({ date: -1 });
         res.json(expense)
     } catch (error) {
         res.status(500).json({ message: "error registering the user", error: error.message });
@@ -52,7 +52,7 @@ exports.downloadExpenseExcel = async (req, res) => {
     const UserId = req.user.id;
 
     try {
-        const expense = await Expense.find({UserId}).sort({ date: -1 });
+        const expense = await Expense.find({ user_id: UserId }).sort({ date: -1 });
 
         const data = expense.map((item) => ({
             category: item.category,
