@@ -49,6 +49,11 @@ exports.getDashboardData = async (req, res) => {
                 })
             )
         ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const recentTransactions = [
+            ...(await Income.find({ user_id: userObjectId }).sort({ date: -1 }).limit(5)),
+            ...(await Expense.find({ user_id: userObjectId }).sort({ date: -1 }).limit(5))
+        ].sort((a, b) => new Date(b.date) - new Date(a.date));
         // Final response (aligned with frontend)
         res.json({
             totalBalance: (totalIncome[0]?.total || 0) - (totalExpense[0]?.total || 0),
@@ -62,10 +67,7 @@ exports.getDashboardData = async (req, res) => {
                 total: last60DaysIncomeTransactions.reduce((sum, txn) => sum + txn.amount, 0),
                 transactions: last60DaysIncomeTransactions  // ✅ Plural
             },
-            recentTransactions: [
-                ...(await Income.find({ user_id: userObjectId }).limit(5)),
-                ...(await Expense.find({ user_id: userObjectId }).limit(5))
-            ].sort((a, b) => b.date - a.date)
+            recentTransactions: recentTransactions
         });
 
     } catch (error) {
